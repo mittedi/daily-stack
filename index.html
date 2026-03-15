@@ -830,11 +830,10 @@ function countWeeklyCompletions(habitId, weekStart) {
 }
 
 // ===== QUOTE OF THE DAY =====
-function getQuoteOfDay() {
-    // Deterministic: based on days since epoch
+function getQuoteForDate(dateStr) {
     const epoch = new Date("2026-01-01T12:00:00");
-    const now = new Date();
-    const daysSinceEpoch = Math.floor((now - epoch) / 86400000);
+    const target = new Date(dateStr + "T12:00:00");
+    const daysSinceEpoch = Math.floor((target - epoch) / 86400000);
     const index = ((daysSinceEpoch % QUOTES.length) + QUOTES.length) % QUOTES.length;
     return QUOTES[index];
 }
@@ -897,7 +896,7 @@ function renderMorning() {
     const today = selectedDate;
     document.getElementById("morning-date").textContent = formatDateDanish(today);
 
-    const quote = getQuoteOfDay();
+    const quote = getQuoteForDate(today);
     document.getElementById("quote-text").textContent = `\u201C${quote.text}\u201D`;
     document.getElementById("quote-author").textContent = `— ${quote.author}`;
 
