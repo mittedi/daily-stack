@@ -86,6 +86,54 @@
         .view { display: none; }
         .view.active { display: block; }
 
+        /* ===== DATE NAV ===== */
+        .date-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 46px;
+            z-index: 9;
+        }
+
+        .date-nav button {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .date-nav button:active {
+            background: var(--bg-input);
+        }
+
+        .date-nav #date-nav-label {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            color: var(--text);
+            letter-spacing: 0.03em;
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .date-nav #today-btn {
+            border-color: var(--amber-dim);
+            color: var(--amber);
+        }
+
+        .date-nav #today-btn.hidden {
+            visibility: hidden;
+        }
+
         /* ===== MORNING VIEW ===== */
         .quote-block {
             margin: 32px 0;
@@ -411,6 +459,13 @@
     <button id="nav-dashboard" onclick="showView('dashboard')" aria-label="Dashboard-visning">Dashboard</button>
 </nav>
 
+<div class="date-nav" id="date-nav">
+    <button onclick="changeDate(-1)" aria-label="Forrige dag">&#8592;</button>
+    <span id="date-nav-label"></span>
+    <button onclick="changeDate(1)" aria-label="Næste dag">&#8594;</button>
+    <button id="today-btn" onclick="goToday()">I dag</button>
+</div>
+
 <main>
     <!-- ===== MORNING VIEW ===== -->
     <div id="view-morning" class="view">
@@ -433,6 +488,17 @@
             >
             <p class="saved-indicator" id="focus-saved">Gemt</p>
         </div>
+
+        <div class="section-gap">
+            <p class="section-label">Min tanke</p>
+            <textarea
+                class="reflection-input"
+                id="journal-morning-input"
+                placeholder="Skriv din tanke..."
+                aria-label="Morgen journal"
+            ></textarea>
+            <p class="saved-indicator" id="journal-morning-saved">Gemt</p>
+        </div>
     </div>
 
     <!-- ===== EVENING VIEW ===== -->
@@ -451,6 +517,17 @@
                 aria-label="Dagens refleksion"
             ></textarea>
             <p class="saved-indicator" id="reflection-saved">Gemt</p>
+        </div>
+
+        <div class="section-gap">
+            <p class="section-label">Min tanke</p>
+            <textarea
+                class="reflection-input"
+                id="journal-evening-input"
+                placeholder="Skriv din tanke..."
+                aria-label="Aften journal"
+            ></textarea>
+            <p class="saved-indicator" id="journal-evening-saved">Gemt</p>
         </div>
     </div>
 
@@ -597,6 +674,14 @@ function setReflection(dateStr, text) {
     safePut(storageKey(dateStr, "reflection"), text);
 }
 
+function getJournal(dateStr, period) {
+    return localStorage.getItem(storageKey(dateStr, `journal_${period}`)) || "";
+}
+
+function setJournal(dateStr, period, text) {
+    safePut(storageKey(dateStr, `journal_${period}`), text);
+}
+
 // ===== API SYNC =====
 function apiPost(path, body) {
     fetch(path, {
@@ -606,64 +691,75 @@ function apiPost(path, body) {
     }).catch(() => {});
 }
 
-async function syncFromApi() {
-    const today = todayStr();
+async function syncDateFromApi(dateStr) {
     try {
-        const [habitsRes, focusRes, reflectionRes] = await Promise.all([
-            fetch(`/api/habits/${today}`).then(r => r.ok ? r.json() : null).catch(() => null),
-            fetch(`/api/focus/${today}`).then(r => r.ok ? r.json() : null).catch(() => null),
-            fetch(`/api/reflection/${today}`).then(r => r.ok ? r.json() : null).catch(() => null),
+        const [habitsRes, focusRes, reflectionRes, journalRes] = await Promise.all([
+            fetch(`/api/habits/${dateStr}`).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(`/api/focus/${dateStr}`).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(`/api/reflection/${dateStr}`).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(`/api/journal/${dateStr}`).then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
 
-        // Merge habits: union of API + localStorage, push local-only back to API
-        const localHabits = getHabits(today);
+        // Merge habits
+        const localHabits = getHabits(dateStr);
         const apiHabits = habitsRes || {};
         const merged = {...apiHabits, ...localHabits};
-        setHabits(today, merged);
+        setHabits(dateStr, merged);
         for (const [id, done] of Object.entries(merged)) {
             if (!apiHabits[id]) {
-                apiPost("/api/habits", {date: today, habit_id: id, done: done});
-            }
-        }
-        // Push API-only habits that localStorage didn't have
-        for (const [id, done] of Object.entries(apiHabits)) {
-            if (!localHabits[id]) {
-                // Already merged into localStorage above
+                apiPost("/api/habits", {date: dateStr, habit_id: id, done: done});
             }
         }
 
-        // Merge focus: localStorage wins if non-empty, otherwise use API
+        // Merge focus: localStorage wins if non-empty
         if (focusRes && focusRes.text) {
-            const localFocus = getFocus(today);
+            const localFocus = getFocus(dateStr);
             if (!localFocus) {
-                setFocus(today, focusRes.text);
-            } else if (localFocus) {
-                apiPost("/api/focus", {date: today, text: localFocus});
+                setFocus(dateStr, focusRes.text);
+            } else {
+                apiPost("/api/focus", {date: dateStr, text: localFocus});
             }
         } else {
-            const localFocus = getFocus(today);
+            const localFocus = getFocus(dateStr);
             if (localFocus) {
-                apiPost("/api/focus", {date: today, text: localFocus});
+                apiPost("/api/focus", {date: dateStr, text: localFocus});
             }
         }
 
         // Merge reflection: same strategy
         if (reflectionRes && reflectionRes.text) {
-            const localRefl = getReflection(today);
+            const localRefl = getReflection(dateStr);
             if (!localRefl) {
-                setReflection(today, reflectionRes.text);
-            } else if (localRefl) {
-                apiPost("/api/reflection", {date: today, text: localRefl});
+                setReflection(dateStr, reflectionRes.text);
+            } else {
+                apiPost("/api/reflection", {date: dateStr, text: localRefl});
             }
         } else {
-            const localRefl = getReflection(today);
+            const localRefl = getReflection(dateStr);
             if (localRefl) {
-                apiPost("/api/reflection", {date: today, text: localRefl});
+                apiPost("/api/reflection", {date: dateStr, text: localRefl});
+            }
+        }
+
+        // Merge journal: same strategy for morning and evening
+        if (journalRes) {
+            for (const period of ["morning", "evening"]) {
+                const apiText = journalRes[period]?.text || "";
+                const localText = getJournal(dateStr, period);
+                if (apiText && !localText) {
+                    setJournal(dateStr, period, apiText);
+                } else if (localText) {
+                    apiPost("/api/journal", {date: dateStr, period: period, text: localText});
+                }
             }
         }
     } catch {
         // Offline — localStorage works as fallback
     }
+}
+
+async function syncFromApi() {
+    await syncDateFromApi(todayStr());
 }
 
 // ===== STREAK CALCULATION =====
@@ -745,6 +841,32 @@ function getQuoteOfDay() {
 
 // ===== VIEW MANAGEMENT =====
 let currentView = "morning";
+let selectedDate = todayStr();
+
+async function changeDate(delta) {
+    selectedDate = addDays(selectedDate, delta);
+    updateDateNav();
+    showView(currentView);
+    await syncDateFromApi(selectedDate);
+    showView(currentView);
+}
+
+function goToday() {
+    selectedDate = todayStr();
+    updateDateNav();
+    showView(currentView);
+}
+
+function updateDateNav() {
+    const label = document.getElementById("date-nav-label");
+    label.textContent = formatDateDanish(selectedDate);
+    const todayBtn = document.getElementById("today-btn");
+    if (selectedDate === todayStr()) {
+        todayBtn.classList.add("hidden");
+    } else {
+        todayBtn.classList.remove("hidden");
+    }
+}
 
 function showView(view) {
     currentView = view;
@@ -753,21 +875,26 @@ function showView(view) {
     document.getElementById(`view-${view}`).classList.add("active");
     document.getElementById(`nav-${view}`).classList.add("active");
 
+    // Hide date-nav on dashboard (already shows date in dash-date)
+    const dateNav = document.getElementById("date-nav");
+    dateNav.style.display = view === "dashboard" ? "none" : "flex";
+
     if (view === "morning") renderMorning();
     if (view === "evening") renderEvening();
     if (view === "dashboard") renderDashboard();
 }
 
 function autoDetectView() {
+    if (selectedDate !== todayStr()) return "morning";
     const hour = new Date().getHours();
     if (hour < 12) return "morning";
     if (hour >= 17) return "evening";
-    return "dashboard"; // Between 12-17: show progress overview
+    return "dashboard";
 }
 
 // ===== RENDER: MORNING =====
 function renderMorning() {
-    const today = todayStr();
+    const today = selectedDate;
     document.getElementById("morning-date").textContent = formatDateDanish(today);
 
     const quote = getQuoteOfDay();
@@ -776,11 +903,14 @@ function renderMorning() {
 
     const focusInput = document.getElementById("focus-input");
     focusInput.value = getFocus(today);
+
+    const journalMorningInput = document.getElementById("journal-morning-input");
+    journalMorningInput.value = getJournal(today, "morning");
 }
 
 // ===== RENDER: EVENING =====
 function renderEvening() {
-    const today = todayStr();
+    const today = selectedDate;
     document.getElementById("evening-date").textContent = formatDateDanish(today);
 
     const habitsList = document.getElementById("habits-list");
@@ -827,10 +957,13 @@ function renderEvening() {
 
     const reflectionInput = document.getElementById("reflection-input");
     reflectionInput.value = getReflection(today);
+
+    const journalEveningInput = document.getElementById("journal-evening-input");
+    journalEveningInput.value = getJournal(today, "evening");
 }
 
 function toggleHabit(habitId) {
-    const today = todayStr();
+    const today = selectedDate;
     const data = getHabits(today);
     const done = !data[habitId];
     if (done) { data[habitId] = true; } else { delete data[habitId]; }
@@ -841,7 +974,7 @@ function toggleHabit(habitId) {
 
 // ===== RENDER: DASHBOARD =====
 function renderDashboard() {
-    const today = todayStr();
+    const today = selectedDate;
     document.getElementById("dash-date").textContent = formatDateDanish(today);
 
     // Summary card
@@ -977,7 +1110,7 @@ function setupAutosave() {
     focusInput.addEventListener("input", () => {
         clearTimeout(focusSaveTimeout);
         focusSaveTimeout = setTimeout(() => {
-            const today = todayStr();
+            const today = selectedDate;
             setFocus(today, focusInput.value);
             apiPost("/api/focus", {date: today, text: focusInput.value});
             flashSaved(focusSaved);
@@ -990,10 +1123,38 @@ function setupAutosave() {
     reflectionInput.addEventListener("input", () => {
         clearTimeout(reflectionSaveTimeout);
         reflectionSaveTimeout = setTimeout(() => {
-            const today = todayStr();
+            const today = selectedDate;
             setReflection(today, reflectionInput.value);
             apiPost("/api/reflection", {date: today, text: reflectionInput.value});
             flashSaved(reflectionSaved);
+        }, 500);
+    });
+
+    const journalMorningInput = document.getElementById("journal-morning-input");
+    const journalMorningSaved = document.getElementById("journal-morning-saved");
+    let journalMorningSaveTimeout = null;
+
+    journalMorningInput.addEventListener("input", () => {
+        clearTimeout(journalMorningSaveTimeout);
+        journalMorningSaveTimeout = setTimeout(() => {
+            const today = selectedDate;
+            setJournal(today, "morning", journalMorningInput.value);
+            apiPost("/api/journal", {date: today, period: "morning", text: journalMorningInput.value});
+            flashSaved(journalMorningSaved);
+        }, 500);
+    });
+
+    const journalEveningInput = document.getElementById("journal-evening-input");
+    const journalEveningSaved = document.getElementById("journal-evening-saved");
+    let journalEveningSaveTimeout = null;
+
+    journalEveningInput.addEventListener("input", () => {
+        clearTimeout(journalEveningSaveTimeout);
+        journalEveningSaveTimeout = setTimeout(() => {
+            const today = selectedDate;
+            setJournal(today, "evening", journalEveningInput.value);
+            apiPost("/api/journal", {date: today, period: "evening", text: journalEveningInput.value});
+            flashSaved(journalEveningSaved);
         }, 500);
     });
 }
@@ -1005,6 +1166,7 @@ function flashSaved(el) {
 
 // ===== INIT =====
 async function init() {
+    updateDateNav();
     setupAutosave();
     const initialView = autoDetectView();
     showView(initialView);

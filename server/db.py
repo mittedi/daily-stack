@@ -46,6 +46,15 @@ def _init_schema(conn: duckdb.DuckDBPyConnection) -> None:
             updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS journal (
+            date       VARCHAR NOT NULL,
+            period     VARCHAR NOT NULL,
+            text       VARCHAR NOT NULL DEFAULT '',
+            updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
+            PRIMARY KEY (date, period)
+        )
+    """)
 
 
 def _now() -> str:
@@ -92,13 +101,13 @@ def upsert_focus(date: str, text: str) -> None:
     )
 
 
-def get_focus(date: str) -> dict | None:
+def get_focus(date: str) -> dict:
     conn = get_conn()
     row = conn.execute(
         "SELECT text, updated_at FROM focus WHERE date = ?", [date]
     ).fetchone()
     if not row:
-        return None
+        return {"text": "", "updated_at": None}
     return {"text": row[0], "updated_at": str(row[1])}
 
 
@@ -118,14 +127,44 @@ def upsert_reflection(date: str, text: str) -> None:
     )
 
 
-def get_reflection(date: str) -> dict | None:
+def get_reflection(date: str) -> dict:
     conn = get_conn()
     row = conn.execute(
         "SELECT text, updated_at FROM reflections WHERE date = ?", [date]
     ).fetchone()
     if not row:
-        return None
+        return {"text": "", "updated_at": None}
     return {"text": row[0], "updated_at": str(row[1])}
+
+
+# --- Journal ---
+
+
+def upsert_journal(date: str, period: str, text: str) -> None:
+    conn = get_conn()
+    conn.execute(
+        """
+        INSERT INTO journal (date, period, text, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (date, period)
+        DO UPDATE SET text = excluded.text, updated_at = excluded.updated_at
+        """,
+        [date, period, text, _now()],
+    )
+
+
+def get_journal(date: str) -> dict:
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT period, text, updated_at FROM journal WHERE date = ?", [date]
+    ).fetchall()
+    result = {
+        "morning": {"text": "", "updated_at": None},
+        "evening": {"text": "", "updated_at": None},
+    }
+    for period, text, updated_at in rows:
+        result[period] = {"text": text, "updated_at": str(updated_at)}
+    return result
 
 
 # --- Export ---
@@ -156,4 +195,19 @@ def export_all() -> dict:
         row[0]: {"text": row[1], "updated_at": str(row[2])} for row in reflection_rows
     }
 
-    return {"habits": habits, "focus": focus, "reflections": reflections}
+    journal_rows = conn.execute(
+        "SELECT date, period, text, updated_at FROM journal ORDER BY date, period"
+    ).fetchall()
+    journal = {}
+    for date, period, text, updated_at in journal_rows:
+        journal.setdefault(date, {})[period] = {
+            "text": text,
+            "updated_at": str(updated_at),
+        }
+
+    return {
+        "habits": habits,
+        "focus": focus,
+        "reflections": reflections,
+        "journal": journal,
+    }
