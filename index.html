@@ -1172,8 +1172,9 @@ async function addNewHabit() {
 
 async function deleteHabit(habitId) {
     try {
-        await fetch(`/api/habits-config/${habitId}`, {method: "DELETE"});
-    } catch {}
+        const res = await fetch(`/api/habits-config/${habitId}`, {method: "DELETE"});
+        if (!res.ok) return;
+    } catch { return; }
     HABITS = HABITS.filter(h => h.id !== habitId);
     renderSettings();
 }

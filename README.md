@@ -1,4 +1,4 @@
-# Daily Stack
+# Daily Stoic
 
 Personal daily ritual app — Stoic reflections, habit tracking, streaks.
 
@@ -15,8 +15,8 @@ Single HTML file. No framework, no backend. `localStorage` for persistence.
 ## Install
 
 ```bash
-git clone git@github.com:EduardPetraeus/daily-stack.git
-cd daily-stack
+git clone https://github.com/mittedi/daily-stack.git
+cd daily-stoic
 chmod +x scripts/serve.sh
 ./scripts/serve.sh
 ```

@@ -1,4 +1,4 @@
-"""FastAPI application for Daily Stack V4."""
+"""FastAPI application for Daily Stoic."""
 
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Daily Stack", version="5.0.0", lifespan=lifespan)
+app = FastAPI(title="Daily Stoic", version="5.0.0", lifespan=lifespan)
 
 STATIC_DIR = Path(__file__).resolve().parent.parent
 

@@ -124,7 +124,8 @@ def upsert_habit_definition(
         VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT (id)
         DO UPDATE SET name = excluded.name, type = excluded.type,
-                      goal = excluded.goal, position = excluded.position
+                      goal = excluded.goal, position = excluded.position,
+                      active = true
         """,
         [id, name, type, goal, position, _now()],
     )
