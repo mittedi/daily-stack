@@ -816,55 +816,6 @@ function setReflection(dateStr, text) {
     safePut(storageKey(dateStr, "reflection"), text);
 }
 
-// ===== API SYNC =====
-function apiPost(path, body) {
-    fetch(path, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(body)
-    }).catch(() => {});
-}
-
-async function syncDateFromApi(dateStr) {
-    try {
-        const [habitsRes, reflectionRes] = await Promise.all([
-            fetch(`/api/habits/${dateStr}`).then(r => r.ok ? r.json() : null).catch(() => null),
-            fetch(`/api/reflection/${dateStr}`).then(r => r.ok ? r.json() : null).catch(() => null),
-        ]);
-
-        // Merge habits
-        const localHabits = getHabits(dateStr);
-        const apiHabits = habitsRes || {};
-        const merged = {...apiHabits, ...localHabits};
-        setHabits(dateStr, merged);
-        for (const [id, done] of Object.entries(merged)) {
-            if (!apiHabits[id]) {
-                apiPost("/api/habits", {date: dateStr, habit_id: id, done: done});
-            }
-        }
-
-        // Merge reflection
-        if (reflectionRes && reflectionRes.text) {
-            const localRefl = getReflection(dateStr);
-            if (!localRefl) {
-                setReflection(dateStr, reflectionRes.text);
-            } else {
-                apiPost("/api/reflection", {date: dateStr, text: localRefl});
-            }
-        } else {
-            const localRefl = getReflection(dateStr);
-            if (localRefl) {
-                apiPost("/api/reflection", {date: dateStr, text: localRefl});
-            }
-        }
-    } catch {
-        // Offline — localStorage works as fallback
-    }
-}
-
-async function syncFromApi() {
-    await syncDateFromApi(todayStr());
-}
 
 // ===== STREAK CALCULATION =====
 function calculateStreak(habitId, habit) {
@@ -943,35 +894,38 @@ function getQuoteForDate(dateStr) {
 }
 
 // ===== HABITS CONFIG =====
-async function loadHabitsConfig() {
-    try {
-        const res = await fetch("/api/habits-config");
-        if (res.ok) {
-            const data = await res.json();
+function loadHabitsConfig() {
+    const raw = localStorage.getItem("ds_habits_config");
+    if (raw) {
+        try {
+            const data = JSON.parse(raw);
             if (data.length > 0) {
-                HABITS = data.map(h => ({id: h.id, name: h.name, type: h.type, goal: h.goal || 1}));
+                HABITS = data;
                 return;
             }
-        }
-    } catch {}
-    // Fallback defaults if API unavailable
+        } catch {}
+    }
+    // Default habits first time
     HABITS = [
         {id: "intensity", name: "15 min intensitetstræning", type: "daily", goal: 1},
         {id: "strength", name: "15 min styrkeøvelser", type: "daily", goal: 1},
         {id: "walk", name: "Gå min. 5 km", type: "daily", goal: 1},
         {id: "bed_early", name: "I seng inden 21:00", type: "daily", goal: 1},
     ];
+    localStorage.setItem("ds_habits_config", JSON.stringify(HABITS));
+}
+
+function saveHabitsConfig() {
+    localStorage.setItem("ds_habits_config", JSON.stringify(HABITS));
 }
 
 // ===== VIEW MANAGEMENT =====
 let currentView = "main";
 let selectedDate = todayStr();
 
-async function changeDate(delta) {
+function changeDate(delta) {
     selectedDate = addDays(selectedDate, delta);
     updateDateNav();
-    showView(currentView);
-    await syncDateFromApi(selectedDate);
     showView(currentView);
 }
 
@@ -1079,7 +1033,6 @@ function toggleHabit(habitId) {
     const done = !data[habitId];
     if (done) { data[habitId] = true; } else { delete data[habitId]; }
     setHabits(today, data);
-    apiPost("/api/habits", {date: today, habit_id: habitId, done: done});
     renderMain();
 }
 
@@ -1097,7 +1050,6 @@ function setupAutosave() {
         reflectionSaveTimeout = setTimeout(() => {
             const today = selectedDate;
             setReflection(today, reflectionInput.value);
-            apiPost("/api/reflection", {date: today, text: reflectionInput.value});
             flashSaved(reflectionSaved);
         }, 500);
     });
@@ -1143,7 +1095,7 @@ function renderSettings() {
     });
 }
 
-async function addNewHabit() {
+function addNewHabit() {
     const nameInput = document.getElementById("new-habit-name");
     const typeSelect = document.getElementById("new-habit-type");
     const goalInput = document.getElementById("new-habit-goal");
@@ -1153,42 +1105,27 @@ async function addNewHabit() {
     const id = name.toLowerCase().replace(/[^a-zæøå0-9]/g, "_").replace(/_+/g, "_");
     const type = typeSelect.value;
     const goal = type === "weekly" ? parseInt(goalInput.value) || 3 : 1;
-    const position = HABITS.length;
-
-    try {
-        await fetch("/api/habits-config", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({id, name, type, goal, position})
-        });
-    } catch {}
 
     HABITS.push({id, name, type, goal});
+    saveHabitsConfig();
     nameInput.value = "";
     goalInput.value = "1";
     typeSelect.value = "daily";
     renderSettings();
 }
 
-async function deleteHabit(habitId) {
-    try {
-        const res = await fetch(`/api/habits-config/${habitId}`, {method: "DELETE"});
-        if (!res.ok) return;
-    } catch { return; }
+function deleteHabit(habitId) {
     HABITS = HABITS.filter(h => h.id !== habitId);
+    saveHabitsConfig();
     renderSettings();
 }
 
 // ===== INIT =====
-async function init() {
-    await loadHabitsConfig();
+function init() {
+    loadHabitsConfig();
     updateDateNav();
     setupAutosave();
     showView("main");
-
-    // Sync from API in background, then re-render
-    await syncFromApi();
-    showView(currentView);
 
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js").catch(err => console.warn("SW:", err));
