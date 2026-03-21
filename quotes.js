@@ -390,4 +390,107 @@ const QUOTES = [
     { text: "Et liv uden udfordring er et liv uden vækst.", author: "Stoisk princip" },
     { text: "Den bedste investering er i dig selv. Alt andet er sekundært.", author: "Stoisk princip" },
     { text: "I dag er en gave. Brug den klogt.", author: "Stoisk princip" },
+
+    // --- Søren Kierkegaard ---
+    { text: "Livet kan kun forstås bagud; men det skal leves fremad.", author: "Søren Kierkegaard" },
+    { text: "At vove er at miste fodfæste for en stund. Ikke at vove er at miste sig selv.", author: "Søren Kierkegaard" },
+    { text: "Den største fare for et menneske er at miste sig selv og leve som alle andre.", author: "Søren Kierkegaard" },
+    { text: "Angst er frihedens svimmelhed.", author: "Søren Kierkegaard" },
+    { text: "Den der vælger at vove, risikerer at fejle. Den der ikke vælger, fejler altid.", author: "Søren Kierkegaard" },
+    { text: "Det at elske et andet menneske er at ville det bedste for dette menneske.", author: "Søren Kierkegaard" },
+    { text: "Det vigtigste er ikke hvem du er i andres øjne, men hvem du er i dine egne.", author: "Søren Kierkegaard" },
+    { text: "Fortvivlelse er at miste sig selv. Håb er at finde sig selv igen.", author: "Søren Kierkegaard" },
+    { text: "Den sande frihed opstår, når du vælger dig selv fuldt ud.", author: "Søren Kierkegaard" },
+    { text: "Kun den der kender sit eget mørke, kan virkelig sætte pris på lyset.", author: "Søren Kierkegaard" },
+    { text: "At vælge er at ofre alt det man ikke vælger — og alligevel vælge.", author: "Søren Kierkegaard" },
+    { text: "Kærlighed er ikke en følelse alene, men en beslutning man tager igen og igen.", author: "Søren Kierkegaard" },
+    { text: "Den der ikke er villig til at fejle, er heller ikke villig til at vokse.", author: "Søren Kierkegaard" },
+    { text: "Autenticitet kræver mod. Det er lettere at efterligne end at være sig selv.", author: "Søren Kierkegaard" },
+    { text: "Den reneste form for galskab er at lade alt forblive, som det er, og håbe på forandring.", author: "Søren Kierkegaard" },
+    { text: "Selvforståelse er en livslang opgave, ikke en destination.", author: "Søren Kierkegaard" },
+    { text: "Det indre liv er det eneste, der virkelig er dit.", author: "Søren Kierkegaard" },
+    { text: "Tålmodighed er nødvendig for at bære sine egne fejl med nåde.", author: "Søren Kierkegaard" },
+    { text: "Springet er selve essensen af tro — og af livet.", author: "Søren Kierkegaard" },
+    { text: "Den der forstår, at alt er muligt, vil kræve det mulige af sig selv.", author: "Søren Kierkegaard" },
+
+    // --- Viktor Frankl ---
+    { text: "Mellem stimulus og respons er der et rum. I det rum er vores frihed til at vælge.", author: "Viktor Frankl" },
+    { text: "Den der har et 'hvorfor' at leve for, kan bære næsten ethvert 'hvordan'.", author: "Viktor Frankl" },
+    { text: "Lykke kan ikke jages. Den følger med som en sideeffekt af det meningsfulde liv.", author: "Viktor Frankl" },
+    { text: "Når vi ikke længere kan ændre en situation, er vi udfordret til at ændre os selv.", author: "Viktor Frankl" },
+    { text: "Alt kan tages fra et menneske på nær én ting: friheden til at vælge sin indstilling.", author: "Viktor Frankl" },
+    { text: "Mening er ikke noget man finder. Det er noget man skaber gennem sine valg.", author: "Viktor Frankl" },
+    { text: "Lidelse ophører med at være lidelse i det øjeblik, den finder sin mening.", author: "Viktor Frankl" },
+    { text: "Et menneske kan bære hvad som helst, hvis det ved hvorfor.", author: "Viktor Frankl" },
+
+    // --- Albert Camus ---
+    { text: "Man skal forestille sig Sisyfos lykkelig.", author: "Albert Camus" },
+    { text: "I midten af vinter fandt jeg endelig, at der inde i mig lå en uovervindelig sommer.", author: "Albert Camus" },
+    { text: "Oprøret er det eneste reelle modsvar til det absurde liv.", author: "Albert Camus" },
+    { text: "At leve fuldt ud er at acceptere, at intet varer — og handle alligevel.", author: "Albert Camus" },
+    { text: "Den der fortvivler over begivenheder, er en kujon. Den der glæder sig over dem, er en idiot.", author: "Albert Camus" },
+
+    // --- Friedrich Nietzsche ---
+    { text: "Det der ikke slår mig ihjel, gør mig stærkere.", author: "Friedrich Nietzsche" },
+    { text: "Du skal blive den du er.", author: "Friedrich Nietzsche" },
+    { text: "At vokse er at overskride sig selv — igen og igen.", author: "Friedrich Nietzsche" },
+    { text: "Den der har et 'hvorfor', kan klare næsten ethvert 'hvordan'.", author: "Friedrich Nietzsche" },
+    { text: "Uden musik ville livet være en fejltagelse.", author: "Friedrich Nietzsche" },
+    { text: "Den der kæmper mod monstre, bør passe på ikke selv at blive et.", author: "Friedrich Nietzsche" },
+
+    // --- Ralph Waldo Emerson ---
+    { text: "Det eneste, der kan give dig varig fred, er dig selv.", author: "Ralph Waldo Emerson" },
+    { text: "Gør det du frygter, og din frygt dør med sikkerhed.", author: "Ralph Waldo Emerson" },
+    { text: "Tillid til dig selv er hemmeligheden bag enhver succes.", author: "Ralph Waldo Emerson" },
+    { text: "Vær dig selv. Enhver anden rolle er allerede besat.", author: "Ralph Waldo Emerson" },
+    { text: "En tanke er et handlingsfrø — plant det rigtigt.", author: "Ralph Waldo Emerson" },
+    { text: "Det at rejse er ikke at flygte. Det er at opdage, hvad der altid var der.", author: "Ralph Waldo Emerson" },
+
+    // --- Henry David Thoreau ---
+    { text: "Gå trygt i den retning dine drømme leder dig. Lev det liv, du forestiller dig.", author: "Henry David Thoreau" },
+    { text: "Prisen er det du betaler. Værdien er det du får.", author: "Henry David Thoreau" },
+    { text: "Det er ikke nok at være flittig. Hvad er du flittig om?", author: "Henry David Thoreau" },
+    { text: "Lev bevidst. Gør ingenting af vane, men af vilje.", author: "Henry David Thoreau" },
+    { text: "Rigdom er evnen til at opleve livet fuldt ud.", author: "Henry David Thoreau" },
+
+    // --- Rumi ---
+    { text: "Lev, hvor du frygter at leve.", author: "Rumi" },
+    { text: "Ud over ideer om ret og uret er der en mark. Jeg mødes med dig der.", author: "Rumi" },
+    { text: "Hvad du søger, søger dig.", author: "Rumi" },
+    { text: "Sår er de steder, lyset kommer ind.", author: "Rumi" },
+    { text: "Lad stilheden fortælle dig sandheden.", author: "Rumi" },
+    { text: "Det du søger udenfor dig selv, er allerede inden i dig.", author: "Rumi" },
+
+    // --- Michel de Montaigne ---
+    { text: "Jeg studerer mig selv mere end noget andet emne. Det er min metafysik.", author: "Michel de Montaigne" },
+    { text: "At filosofere er at lære at dø.", author: "Michel de Montaigne" },
+    { text: "Hvert menneske bærer hele menneskenes betingelse i sig.", author: "Michel de Montaigne" },
+    { text: "Intet er så svært som at kende sig selv — og intet er mere nødvendigt.", author: "Michel de Montaigne" },
+    { text: "Den største ting i verden er at vide, hvordan man tilhører sig selv.", author: "Michel de Montaigne" },
+
+    // --- Aristoteles ---
+    { text: "Vi er det vi gentagne gange gør. Fremragenhed er ikke en handling, men en vane.", author: "Aristoteles" },
+    { text: "Lykken er den endelige hensigt med det menneskelige liv.", author: "Aristoteles" },
+    { text: "Den der intet spørger, lærer intet.", author: "Aristoteles" },
+    { text: "Klogskab er evnen til at skelne det gode fra det gode på det rette tidspunkt.", author: "Aristoteles" },
+    { text: "Det er karakteren, der afslører mennesket — ikke ord, men handlinger.", author: "Aristoteles" },
+
+    // --- William James ---
+    { text: "Den største revolution i min generation er opdagelsen af, at man kan ændre sit liv ved at ændre sine tanker.", author: "William James" },
+    { text: "Handl som om du allerede er den person, du ønsker at blive.", author: "William James" },
+    { text: "At vide er ikke nok. Man må anvende det man ved.", author: "William James" },
+    { text: "Visdom er evnen til at håndtere det uafgørlige.", author: "William James" },
+
+    // --- Arthur Schopenhauer ---
+    { text: "Talent rammer et mål, ingen kan ramme. Geni rammer et mål, ingen kan se.", author: "Arthur Schopenhauer" },
+    { text: "Det meste menneskelig lidelse opstår ikke af dårligdom, men af uvidenhed.", author: "Arthur Schopenhauer" },
+    { text: "Sundhed er ikke alt, men uden sundhed er alt ingenting.", author: "Arthur Schopenhauer" },
+    { text: "At læse er at låne andres tanker. At tænke er at mønte sine egne.", author: "Arthur Schopenhauer" },
+
+    // --- Lao Tzu ---
+    { text: "En rejse på tusind mil begynder med et enkelt skridt.", author: "Lao Tzu" },
+    { text: "Kend andre, og du er klog. Kend dig selv, og du er oplyst.", author: "Lao Tzu" },
+    { text: "Stil dig i problemer, mens de er små.", author: "Lao Tzu" },
+    { text: "Vand er blødt, men det river sten itu med tålmodighed.", author: "Lao Tzu" },
+    { text: "At have uden at eje. At handle uden at forvente. At lede uden at kontrollere.", author: "Lao Tzu" },
 ];
