@@ -467,6 +467,47 @@
             background: var(--amber);
         }
 
+        /* ===== BACKUP ===== */
+        .backup-section {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .backup-btn {
+            padding: 10px 16px;
+            border-radius: var(--radius);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: none;
+        }
+
+        .backup-btn.export {
+            background: var(--green-dim);
+        }
+
+        .backup-btn.export:active {
+            background: var(--green);
+        }
+
+        .backup-btn.import {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+        }
+
+        .backup-btn.import:active {
+            border-color: var(--amber-dim);
+        }
+
         /* ===== REVIEW VIEW ===== */
         .review-toggle {
             display: flex;
@@ -740,6 +781,13 @@
             </div>
             <button class="add-habit-btn" onclick="addNewHabit()">Tilføj vane</button>
         </div>
+
+        <div class="backup-section">
+            <p class="section-label">Backup</p>
+            <button class="backup-btn export" onclick="exportData()">Gem backup til fil</button>
+            <button class="backup-btn import" onclick="document.getElementById('import-file').click()">Gendan fra fil</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
     </div>
 </main>
 
@@ -816,6 +864,50 @@ function setReflection(dateStr, text) {
     safePut(storageKey(dateStr, "reflection"), text);
 }
 
+
+// ===== BACKUP =====
+function exportData() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith("ds_")) {
+            data[key] = localStorage.getItem(key);
+        }
+    }
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = todayStr();
+    a.href = url;
+    a.download = `daily-stoic-backup-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            let count = 0;
+            for (const [key, value] of Object.entries(data)) {
+                if (key.startsWith("ds_")) {
+                    localStorage.setItem(key, value);
+                    count++;
+                }
+            }
+            alert(`Backup gendannet — ${count} poster indlæst.`);
+            showView("main");
+        } catch {
+            alert("Kunne ikke læse filen. Er det en gyldig backup?");
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+}
 
 // ===== STREAK CALCULATION =====
 function calculateStreak(habitId, habit) {
